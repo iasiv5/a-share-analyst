@@ -3,17 +3,10 @@
 ## 趋势指标
 
 ### MA (移动平均线)
-```python
-def calc_ma(close, period):
-    return close.rolling(window=period).mean()
-# 常用周期：MA5, MA10, MA20, MA60, MA120, MA250
-```
+常用周期：MA5 (短期趋势), MA10 (中期趋势), MA20 (生命线), MA60 (决策线), MA120 (半年线), MA250 (年线/长期支撑)
 
 ### EMA (指数移动平均)
-```python
-def calc_ema(close, period):
-    return close.ewm(span=period, adjust=False).mean()
-```
+更敏感的趋势跟踪指标，对近期价格变化反应更快
 
 ### MACD (指数平滑异同移动平均线)
 ```python
@@ -50,8 +43,8 @@ def calc_rsi(close, period=14):
     loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
     rs = gain / loss
     return 100 - (100 / (1 + rs))
-# RSI>70超买 | RSI<30超卖
 ```
+# RSI>70超买 | RSI<30超卖 | 注意：RSI 在强趋势中可能长期超买/超卖，此时失去预测作用
 
 ### WR (威廉指标)
 ```python
@@ -98,35 +91,20 @@ def calc_obv(close, volume):
 ```
 
 ### VOL_MA (成交量均线)
-```python
-def calc_vol_ma(volume, period):
-    return volume.rolling(window=period).mean()
-# 放量突破：当日成交量 > 2 * VOL_MA5
-```
+常用周期：VOL_MA5 (短期量能), VOL_MA20 (中期量能)
+放量突破：当日成交量 > 2 * VOL_MA5，表明资金介入
 
 ## 形态识别
 
 ### 趋势判断
-```python
-def trend_direction(close, ma_short=20, ma_long=60):
-    ma_s = close.rolling(ma_short).mean()
-    ma_l = close.rolling(ma_long).mean()
-    if ma_s.iloc[-1] > ma_l.iloc[-1] and close.iloc[-1] > ma_s.iloc[-1]:
-        return "上升趋势"
-    elif ma_s.iloc[-1] < ma_l.iloc[-1] and close.iloc[-1] < ma_s.iloc[-1]:
-        return "下降趋势"
-    else:
-        return "震荡整理"
-```
+- **上升趋势**：MA20 > MA60 且价格 > MA20
+- **下降趋势**：MA20 < MA60 且价格 < MA20
+- **震荡整理**：MA20 和 MA60 交织，无明显方向
 
 ### 支撑阻力位
-```python
-def support_resistance(high, low, close, period=20):
-    support = low.rolling(window=period).min()
-    resistance = high.rolling(window=period).max()
-    pivot = (high + low + close) / 3
-    return support.iloc[-1], resistance.iloc[-1], pivot.iloc[-1]
-```
+- **支撑位**：过去 N 日最低点（常用 N=20），价格接近时可能反弹
+- **阻力位**：过去 N 日最高点（常用 N=20），价格接近时可能回落
+- **枢轴点**：(最高价 + 最低价 + 收盘价) / 3，当日重要位置
 
 ## 信号评分系统
 

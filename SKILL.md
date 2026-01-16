@@ -1,11 +1,19 @@
----
+ ---
 name: a-share-analyst
-description: A股专业分析师助手，提供每日股价分析、选股策略和投资建议。适用于：(1) 获取A股实时行情和历史数据，(2) 技术面分析（K线形态、MACD、KDJ、RSI、布林带等），(3) 基本面分析（财务指标、估值分析），(4) 板块热点追踪，(5) 选股策略筛选，(6) 量化因子分析，(7) 生成每日股市分析报告。当用户询问"帮我分析股票"、"今日选股"、"A股行情分析"、"技术分析"、"基本面分析"、"量化选股"等相关问题时触发。
----
+description: A股市场分析工具。适用于：实时行情获取、技术指标分析（MACD/KDJ/RSI/布林带）、K线形态识别、基本面分析（估值/盈利/成长）、板块热点追踪、多因子选股策略、量化因子分析。当用户询问"帮我分析股票"、"今日选股"、"A股行情分析"、"技术分析"、"基本面分析"、"量化选股"时触发。
+ ---
 
 # A股分析师 Skill
 
 专业的A股市场分析工具，整合多数据源，提供技术面、基本面综合分析和智能选股策略。
+
+## 分析前思维框架
+
+在开始任何分析之前，问你自己：
+- **分析目的**：这是用于短期交易还是长期投资？
+- **市场背景**：当前市场是牛市、熊市还是震荡市？检查 MA120 和市场广度
+- **风险承受能力**：可接受的最大回撤是多少？仓位如何分配？
+- **数据质量**：数据来源是否可靠？是否存在延迟或异常？
 
 ## 数据获取
 
@@ -37,6 +45,8 @@ df = ak.stock_lhb_detail_em(start_date="20241201", end_date="20241209")
 df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 ```
 
+> **脚本调用**：批量获取市场数据 → 执行 `scripts/fetch_market_data.py`
+
 ## 分析工作流程
 
 ### 1. 每日盘前分析
@@ -52,7 +62,19 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 
 对单只股票执行：
 1. 获取历史K线数据（至少60日）
+
+**MANDATORY - 完整阅读**：继续之前，你必须完整阅读
+[`references/technical_indicators.md`](references/technical_indicators.md) (~141行)。
+**NEVER 设置范围限制** - 必须完整阅读整个文件。
+
 2. 计算技术指标（见 `references/technical_indicators.md`）
+
+> **脚本调用**：批量计算技术指标 → 执行 `scripts/technical_analysis.py`
+
+**MANDATORY - 完整阅读**：如果需要识别K线形态，必须完整阅读
+[`references/candlestick_patterns.md`](references/candlestick_patterns.md) (~137行)。
+**Do NOT load** `references/candlestick_patterns.md` 除非明确要求K线形态识别。
+
 3. 识别K线形态（见 `references/candlestick_patterns.md`）
 4. 判断趋势和支撑/阻力位
 5. 生成技术面评分
@@ -61,12 +83,21 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 
 执行顺序：
 1. 获取财务数据（营收、净利润、ROE等）
+
+**MANDATORY - 完整阅读**：继续之前，你必须完整阅读
+[`references/fundamental_metrics.md`](references/fundamental_metrics.md) (~195行)。
+**NEVER 设置范围限制** - 必须完整阅读整个文件。
+
 2. 计算估值指标（PE、PB、PS）
 3. 分析行业地位和竞争优势
 4. 评估成长性和安全边际
 5. 生成基本面评分
 
 ### 4. 智能选股策略
+
+**MANDATORY - 完整阅读**：执行任何选股策略之前，你必须完整阅读
+[`references/factor_library.md`](references/factor_library.md) (~267行)。
+**NEVER 设置范围限制** - 必须完整阅读整个文件。
 
 **策略类型选择：**
 - 趋势突破策略 → 执行 `scripts/strategy_breakout.py`
@@ -75,6 +106,8 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 - 多因子综合策略 → 执行 `scripts/strategy_multi_factor.py`
 
 ## 输出格式
+
+> **脚本调用**：生成分析报告 → 执行 `scripts/generate_report.py`
 
 ### 个股分析报告模板
 
@@ -132,22 +165,17 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 投资有风险，以上分析仅供参考，不构成投资建议。
 ```
 
-## 关键脚本
+## 绝对不要做的事 (NEVER Do)
 
-- `scripts/fetch_market_data.py` - 市场数据获取
-- `scripts/technical_analysis.py` - 技术指标计算
-- `scripts/strategy_breakout.py` - 趋势突破选股
-- `scripts/strategy_value.py` - 价值投资选股
-- `scripts/strategy_momentum.py` - 动量因子选股
-- `scripts/strategy_multi_factor.py` - 多因子选股
-- `scripts/generate_report.py` - 报告生成
-
-## 参考文档
-
-- `references/technical_indicators.md` - 技术指标计算公式
-- `references/candlestick_patterns.md` - K线形态识别
-- `references/fundamental_metrics.md` - 基本面指标说明
-- `references/factor_library.md` - 量化因子库
+- **NEVER 单独使用 PE 估值** - 高 PE 对于高成长股票可能是合理的；必须与行业同行和历史平均值对比
+- **NEVER 依赖单一指标信号** - 始终用来自不同类别的 2+ 个指标确认（趋势 + 动量 + 成交量）
+- **NEVER 忽略市场环境** - 牛市策略在熊市中会失败；在选择策略前检查 MA120 和市场广度
+- **NEVER 追逐近期赢家** - 30 天内涨幅 >50% 的股票具有高均值回归风险
+- **NEVER 使用回测而不进行样本外验证** - 过度拟合的策略在实际交易中会失败
+- **NEVER 在财务数据发布前一天建仓** - 业绩公告日往往波动巨大，风险不可控
+- **NEVER 忽略流动性风险** - 日成交额 < 5000 万的股票进出困难
+- **NEVER 忽略 ST 股风险** - ST 股面临退市风险，风险承受能力弱的投资者应避免
+- **NEVER 修改技术指标参数** - 除非有充分理由，使用标准参数（MACD 12/26/9、KDJ 9/3/3、RSI 14）
 
 ## 重要提示
 
