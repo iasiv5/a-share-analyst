@@ -45,7 +45,21 @@ df = ak.stock_lhb_detail_em(start_date="20241201", end_date="20241209")
 df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 ```
 
-> **脚本调用**：批量获取市场数据 → 执行 `scripts/fetch_market_data.py`
+**MANDATORY - 脚本调用**：批量获取市场数据 → 执行 `scripts/fetch_market_data.py`
+**NEVER 跳过此步骤** - 必须调用脚本获取数据，不要尝试手动编写代码获取数据
+
+## 脚本调用映射表
+
+**MANDATORY - 执行规则**：当用户请求以下功能时，必须调用对应的脚本，不得跳过或手动实现。
+
+| 用户请求 | 必须调用的脚本 | 调用方式 |
+|---------|--------------|---------|
+| 获取实时行情、市场概览 | `scripts/fetch_market_data.py` | 执行脚本获取数据 |
+| 计算技术指标（MACD/KDJ/RSI/布林带等） | `scripts/technical_analysis.py` | 执行脚本计算指标 |
+| 选股策略（价值/动量/突破/多因子） | `scripts/strategy_multi_factor.py` | 执行脚本筛选股票 |
+| 生成分析报告 | `scripts/generate_report.py` | 执行脚本生成报告 |
+
+**NEVER 尝试手动实现上述功能** - 这些功能已在脚本中完整实现，直接调用即可
 
 ## 分析工作流程
 
@@ -69,7 +83,8 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 
 2. 计算技术指标（见 `references/technical_indicators.md`）
 
-> **脚本调用**：批量计算技术指标 → 执行 `scripts/technical_analysis.py`
+**MANDATORY - 脚本调用**：批量计算技术指标 → 执行 `scripts/technical_analysis.py`
+**NEVER 跳过此步骤** - 必须调用脚本计算指标，不要尝试手动编写代码计算
 
 **MANDATORY - 完整阅读**：如果需要识别K线形态，必须完整阅读
 [`references/candlestick_patterns.md`](references/candlestick_patterns.md) (~137行)。
@@ -99,15 +114,14 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 [`references/factor_library.md`](references/factor_library.md) (~267行)。
 **NEVER 设置范围限制** - 必须完整阅读整个文件。
 
-**策略类型选择：**
-- 趋势突破策略 → 执行 `scripts/strategy_breakout.py`
-- 价值低估策略 → 执行 `scripts/strategy_value.py`
-- 动量因子策略 → 执行 `scripts/strategy_momentum.py`
-- 多因子综合策略 → 执行 `scripts/strategy_multi_factor.py`
+**MANDATORY - 选股策略脚本调用**：
+- 所有选股策略（趋势突破、价值低估、动量因子、多因子综合）→ 执行 `scripts/strategy_multi_factor.py`
+- **NEVER 手动编写选股代码** - 必须调用脚本，传入相应策略参数
 
 ## 输出格式
 
-> **脚本调用**：生成分析报告 → 执行 `scripts/generate_report.py`
+**MANDATORY - 脚本调用**：生成分析报告 → 执行 `scripts/generate_report.py`
+**NEVER 跳过此步骤** - 必须调用脚本生成报告，确保格式统一
 
 ### 个股分析报告模板
 
@@ -183,3 +197,23 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 2. **风险警示**：所有分析仅供参考，不构成投资建议
 3. **回测验证**：新策略需先进行历史回测
 4. **仓位管理**：建议单只股票仓位不超过总资金20%
+
+## 脚本使用示例
+
+### 示例1：用户请求"帮我分析贵州茅台的技术面"
+
+**正确流程：**
+1. 首先调用 `scripts/fetch_market_data.py` 获取贵州茅台的历史K线数据
+2. 然后调用 `scripts/technical_analysis.py` 计算技术指标
+3. 最后调用 `scripts/generate_report.py` 生成分析报告
+4. 将结果以"个股分析报告模板"的格式呈现给用户
+
+### 示例2：用户请求"今日选出价值低估的股票"
+
+**正确流程：**
+1. 首先调用 `scripts/fetch_market_data.py` 获取全市场数据
+2. 然后调用 `scripts/strategy_multi_factor.py` 并传入价值策略参数
+3. 最后调用 `scripts/generate_report.py` 生成选股报告
+4. 将结果以"每日选股清单模板"的格式呈现给用户
+
+**关键原则：始终优先调用脚本，而不是从零开始编写代码**
